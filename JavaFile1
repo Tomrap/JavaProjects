@@ -1,0 +1,80 @@
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.UUID;
+
+public class Main {
+
+    private static Queue<String> synQueue = new LimitedQueue<>(2);
+
+    public static void main(String[] args) throws InterruptedException {
+        Producer producer = new Producer();
+        Consumer consumer = new Consumer();
+        producer.start();
+        consumer.start();
+
+        Thread.sleep(300);
+
+        producer.kill();
+        consumer.kill();
+    }
+
+    private static class Producer extends Thread {
+
+        private volatile boolean isRunning = true;
+
+        public void run() {
+            while (isRunning) {
+                String uuid = UUID.randomUUID().toString();
+                synchronized (synQueue) {
+                    synQueue.add(uuid);
+                    System.out.println("added " + uuid);
+                    System.out.println("size is now " + synQueue.size());
+                }
+            }
+        }
+
+        void kill() {
+            isRunning = false;
+        }
+    }
+
+    private static class Consumer extends Thread {
+
+        private volatile boolean isRunning = true;
+
+        public void run() {
+            while (isRunning) {
+                if(synQueue.size()>0) {
+                    synchronized (synQueue) {
+                        String s = synQueue.poll();
+                        System.out.println("got " + s);
+                        System.out.println("size is now " + synQueue.size());
+                    }
+                }
+            }
+        }
+
+        void kill() {
+            isRunning = false;
+        }
+    }
+    private static class LimitedQueue<E> extends LinkedList<E> {
+        private int limit;
+
+        LimitedQueue(int limit) {
+            this.limit = limit;
+        }
+
+        @Override
+        public boolean add(E o) {
+            if(super.size()<limit) {
+                super.add(o);
+                return true;
+            }
+            return false;
+        }
+    }
+}
+
+
+
