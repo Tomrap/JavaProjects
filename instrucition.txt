@@ -1,0 +1,22 @@
+merge into one class
+add row to table to work on it
+write sql using systime or something
+test
+
+
+
+
+
+eventually write dao to return number of jobs (probably use dao from pentaho) wrap sql with count and use it instead of JobDao and Jblgrow entity
+
+add DataQualityNotifyDao
+add CCHFatcaJobEnum
+
+Fatca Service
+change List<JblgRow> to List<Map<String, Object>>
+etc
+
+QueryBuilder change sql to select count itp
+add new constructor for CCHFatcaJobEnum
+
+modify tests (add elements to fatcaLoadJobs etc)
