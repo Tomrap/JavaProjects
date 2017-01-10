@@ -1,0 +1,1 @@
+C:\Users\A048471\Downloads\apache-jmeter-3.0\apache-jmeter-3.0\bin\jmeter.bat -q C:\Users\A048471\TestsAutomation\Scripts\ETF_Hub\OrderEntry\RD\first.properties -t C:\Users\A048471\TestsAutomation\Scripts\ETF_Hub\OrderEntry\RD\final_version.jmx
