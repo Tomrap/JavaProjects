@@ -1,0 +1,118 @@
+@Configuration 
+@Profile("production")
+public class JndiDataConfigWebSphere implements DataConfig {
+
+	@Bean
+	public DataSource dataSource() throws NamingException {
+		JndiObjectFactoryBean goldenSourceJNDI = new JndiObjectFactoryBean();
+		return (DataSource) goldenSourceJNDI.getJndiTemplate().lookup("jdbc/gseast");
+	}
+
+}
+
+@Configuration
+@Profile("dev")
+public class StandaloneDataConfig implements DataConfig{
+
+	@Bean
+	public DataSource dataSource() {
+		BasicDataSource dataSourceGC = new BasicDataSource();
+		dataSourceGC.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+		dataSourceGC.setUsername("GSMAINTUSR");
+		dataSourceGC.setPassword("bbhpass1");
+		dataSourceGC.setUrl("jdbc:oracle:thin:@ldap://qcoid.bbh.com:3060/gst,cn=OracleContext,dc=testbbh,dc=com");
+		return dataSourceGC;
+	}
+
+}
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://java.sun.com/xml/ns/javaee"
+		 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+		 version="2.5">
+
+	<display-name>explorer-funkeeper</display-name>
+
+	<context-param>
+		<param-name>contextClass</param-name>
+		<param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>com.bbh.gseast.explorer.funkeeper.config</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>spring.profiles.active</param-name>
+		<param-value>production</param-value>
+	</context-param>
+
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<servlet>
+		<servlet-name>mvc</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>mvc</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<welcome-file-list>
+		<welcome-file>/views/snoopdog.jsp</welcome-file>
+	</welcome-file-list>
+
+</web-app>
+
+
+
+
+package com.bbh.gseast.explorer.funkeeper.config;
+
+@EnableWebMvc
+@ComponentScan(basePackages = "com.bbh.gseast.explorer")
+@Configuration
+public class SpringConfig {
+
+    @Bean
+    public UrlBasedViewResolver viewResolver() {
+        UrlBasedViewResolver resolver = new UrlBasedViewResolver();
+        resolver.setViewClass(org.springframework.web.servlet.view.JstlView.class);
+        resolver.setPrefix("/views/");
+        resolver.setSuffix(".jsp");
+        return resolver;
+
+    }
+}
+
+package com.bbh.gseast.explorer.funkeeper.config;
+
+@Configuration
+@EnableTransactionManagement
+//@EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
+//@EnableLoadTimeWeaving(aspectjWeaving= EnableLoadTimeWeaving.AspectJWeaving.ENABLED)
+public class TransactionManagerConfig {
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
+}
+
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@WebAppConfiguration
+@ContextConfiguration(classes = {SpringConfig.class, TransactionManagerConfig.class})
+@Transactional
+@TransactionConfiguration(transactionManager = "txManager", defaultRollback = true)
+@ActiveProfiles("dev")
+public class CsmfRequestPurgeServiceIntegrationTest {
+
